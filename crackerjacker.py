@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
-
+import os.path
 import crypt
+import argparse
 
 def check_encryption_type(encryption_indicator):
 
@@ -21,8 +22,8 @@ def check_encryption_type(encryption_indicator):
 
     return encryption_type
 
-def crack():
-    shadow_file = open('/etc/shadow', 'r')
+def crack(wordlist_path, shadowfile_path):
+    shadow_file = open(shadowfile_path, 'r')
 
     for line in shadow_file.readlines():
         print("[+] Processing entry in shadow file: {}".format(line))
@@ -47,7 +48,7 @@ def crack():
 
         print("[+] Attempting to crack {} encrypted password....".format(encryption_type))
 
-        with open('passwords.txt') as wordlist:
+        with open(wordlist_path) as wordlist:
             for word in wordlist:
                 computed_hash = crypt.crypt(word.strip(), salt) 
 
@@ -58,6 +59,23 @@ def crack():
         print ("[x] Couldn't crack user {}\n\n\n".format(user))
                 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+                prog="Cracker Jacker",
+                description="Command line tool to brute force crack /etc/shadow with a wordlist")
+
+    parser.add_argument('--wordlist', '-w', required=True, help='Filepath of wordlist to use')
+    parser.add_argument('--shadowfile', '-s', help='Filepath to shadow file', default='/etc/shadow')
+
+    args = parser.parse_args()
+
+    if not os.path.exists(args.wordlist) or not os.path.isfile(args.wordlist):
+        print("Doh!!! Invalid wordlist path bruh...")
+        quit()
+
+    if not os.path.exists(args.shadowfile) or not os.path.isfile(args.shadowfile):
+        print("Doh!!! Invalid shadowfile path bruh...")
+        quit()
+
     print("==============================================")
     print("====  ====  ==== ==== ==== ==== ==== ==== ====")
     print(" ==    ==    ==   ==   ==   ==   ==   ==   ==")
@@ -66,4 +84,5 @@ if __name__ == '__main__':
 
     input("\n\n        PRESS ANY KEY TO BEGIN       \n\n")
 
-    crack()
+    crack(args.wordlist, args.shadowfile)
+
